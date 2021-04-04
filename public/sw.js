@@ -1,42 +1,42 @@
-const self = this;
-const CACHE_NAME = 'v21-react';
-const CACHE_FILES = [
-	'./index.html',
-	'./offline.html',
-	'./offline.png',
-	'./logo192.png',
-	'./logo512.png',
-	'./manifest.json',
-	'./sw.js',
-	'./favicon.ico',
-	'./static/js/bundle.js	',
-	'./static/js/main.chunk.js',
-	'./static/js/vendors~main.chunk.js',
-	'./static/media/bg.7b83f7cd.jpg',
-];
-self.addEventListener('install', (e) => {
-	e.waitUntil(
-		caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHE_FILES))
-	);
-	self.skipWaiting();
-});
+// const self = this;
+// const CACHE_NAME = 'v2142-react';
+// const CACHE_FILES = [
+// 	'/',
+// 	'./index.html',
+// 	'./offline.html',
+// 	'./offline.png',
+// 	'./logo192.png',
+// 	'./logo512.png',
+// 	'./manifest.json',
+// 	'./favicon.ico',
+// 	'./static/js/bundle.js	',
+// 	'./static/js/main.chunk.js',
+// 	'./static/js/vendors~main.chunk.js',
+// 	'./static/media/bg.7b83f7cd.jpg',
+// ];
+// self.addEventListener('install', (e) => {
+// 	e.waitUntil(
+// 		caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHE_FILES))
+// 	);
+// 	self.skipWaiting();
+// });
 
-// put the request inside the cache - request clone
+// // put the request inside the cache - request clone
 
-self.addEventListener('activate', (event) => {
-	var cacheKeeplist = [CACHE_NAME];
-	event.waitUntil(
-		caches.keys().then((keyList) => {
-			return Promise.all(
-				keyList.map((key) => {
-					if (cacheKeeplist.indexOf(key) === -1) {
-						return caches.delete(key);
-					}
-				})
-			);
-		})
-	);
-});
+// self.addEventListener('activate', (event) => {
+// 	var cacheKeeplist = [CACHE_NAME];
+// 	event.waitUntil(
+// 		caches.keys().then((keyList) => {
+// 			return Promise.all(
+// 				keyList.map((key) => {
+// 					if (cacheKeeplist.indexOf(key) === -1) {
+// 						return caches.delete(key);
+// 					}
+// 				})
+// 			);
+// 		})
+// 	);
+// });
 
 const offlineObject = {
 	coord: {
@@ -106,15 +106,13 @@ self.addEventListener('fetch', (event) => {
 				fetch(event.request).catch(() => caches.match(`./${filePath}`))
 			);
 		default:
-			console.log(event.request.url);
 			if (event.request.url.includes('openweathermap')) {
-				return event.respondWith(new Response(JSON.stringify(offlineObject)));
+				return event.respondWith(
+					fetch(event.request).catch(
+						() => new Response(JSON.stringify(offlineObject))
+					)
+				);
 			}
-			// return event.respondWith(
-			// 	fetch(event.request).catch(
-			// 		() => new Response(JSON.stringify(offlineObject))
-			// 	)
-			// );
 			return event.respondWith(fetch(event.request));
 	}
 });

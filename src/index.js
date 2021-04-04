@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 
-// import * as sw from './serviceWorkerRegistration';
+import * as sw from './serviceWorkerRegistration';
 
 ReactDOM.render(
 	<React.StrictMode>
@@ -11,4 +11,4 @@ ReactDOM.render(
 	document.getElementById('root')
 );
 
-// sw.register();
+sw.register();
