@@ -147,6 +147,9 @@ self.addEventListener('fetch', (event) => {
 				)
 			);
 		case 'document':
+			return event.respondWith(
+				fetch(event.request).catch(() => caches.match(`./offline.html`))
+			);
 		case 'script':
 			return event.respondWith(
 				fetch(event.request).catch(() => caches.match(`./${filePath}`))
