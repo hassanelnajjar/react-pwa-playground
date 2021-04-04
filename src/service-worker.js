@@ -30,10 +30,6 @@ precacheAndRoute([
 		'/manifest.json',
 		'/sw.js',
 		'/favicon.ico',
-		'/static/js/bundle.js	',
-		'/static/js/main.chunk.js',
-		'/static/js/vendors~main.chunk.js',
-		'/static/media/bg.7b83f7cd.jpg',
 	].map((item) => ({ url: item, revision: null })),
 ]);
 // Set up App Shell-style routing, so that all navigation requests
