@@ -10,8 +10,8 @@
 import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+import { registerRoute, setCatchHandler } from 'workbox-routing';
 
 clientsClaim();
 
@@ -22,8 +22,7 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 precacheAndRoute([
 	...[
-		'/',
-		'/offline.html',
+		'/service-worker.js',
 		'/offline.png',
 		'/logo192.png',
 		'/logo512.png',
@@ -81,87 +80,120 @@ self.addEventListener('message', (event) => {
 		self.skipWaiting();
 	}
 });
+const FALLBACK_HTML_URL = '/offline.html';
+
+setCatchHandler(({ event }) => {
+	// The FALLBACK_URL entries must be added to the cache ahead of time, either
+	// via runtime or precaching. If they are precached, then call
+	// `matchPrecache(FALLBACK_URL)` (from the `workbox-precaching` package)
+	// to get the response from the correct cache.
+	//
+	// Use event, request, and url to figure out how to respond.
+	// One approach would be to use request.destination, see
+	// https://medium.com/dev-channel/service-worker-caching-strategies-based-on-request-types-57411dd7652c
+	switch (event.request.destination) {
+		case 'document':
+			// If using precached URLs:
+			// return matchPrecache(FALLBACK_HTML_URL);
+			return caches.match(FALLBACK_HTML_URL);
+
+		// case 'image':
+		// 	// If using precached URLs:
+		// 	// return matchPrecache(FALLBACK_IMAGE_URL);
+		// 	return caches.match(FALLBACK_IMAGE_URL);
+
+		// case 'font':
+		// 	// If using precached URLs:
+		// 	// return matchPrecache(FALLBACK_FONT_URL);
+		// 	return caches.match(FALLBACK_FONT_URL);
+
+		default:
+			// If we don't have a fallback, just return an error response.
+			return Response.error();
+	}
+});
 
 // Any other custom service worker logic can go here.
 
-const offlineObject = {
-	coord: {
-		lon: 57,
-		lat: 21,
-	},
-	weather: [
-		{
-			id: 800,
-			main: 'Clear',
-			description: 'Please Check Your Connection !!',
-			icon: '01n',
-		},
-	],
-	base: 'stations',
-	main: {
-		temp: 0,
-		feels_like: 28.83,
-		temp_min: 30.67,
-		temp_max: 30.67,
-		pressure: 1008,
-		humidity: 21,
-		sea_level: 1008,
-		grnd_level: 994,
-	},
-	visibility: 10000,
-	wind: {
-		speed: 5.52,
-		deg: 165,
-		gust: 7.92,
-	},
-	clouds: {
-		all: 6,
-	},
-	dt: 1617472301,
-	sys: {
-		country: 'OM',
-		sunrise: 1617415400,
-		sunset: 1617460014,
-	},
-	timezone: 14400,
-	id: 286963,
-	name: 'Offline',
-	cod: 200,
-};
+// const offlineObject = {
+// 	coord: {
+// 		lon: 57,
+// 		lat: 21,
+// 	},
+// 	weather: [
+// 		{
+// 			id: 800,
+// 			main: 'Clear',
+// 			description: 'Please Check Your Connection !!',
+// 			icon: '01n',
+// 		},
+// 	],
+// 	base: 'stations',
+// 	main: {
+// 		temp: 0,
+// 		feels_like: 28.83,
+// 		temp_min: 30.67,
+// 		temp_max: 30.67,
+// 		pressure: 1008,
+// 		humidity: 21,
+// 		sea_level: 1008,
+// 		grnd_level: 994,
+// 	},
+// 	visibility: 10000,
+// 	wind: {
+// 		speed: 5.52,
+// 		deg: 165,
+// 		gust: 7.92,
+// 	},
+// 	clouds: {
+// 		all: 6,
+// 	},
+// 	dt: 1617472301,
+// 	sys: {
+// 		country: 'OM',
+// 		sunrise: 1617415400,
+// 		sunset: 1617460014,
+// 	},
+// 	timezone: 14400,
+// 	id: 286963,
+// 	name: 'Offline',
+// 	cod: 200,
+// };
 
-self.addEventListener('fetch', (event) => {
-	const { destination } = event.request;
-	const filePath = event.request.url
-		.split('//')[1]
-		.split('/')
-		.slice(1)
-		.join('/');
-	switch (destination) {
-		case 'image':
-			return event.respondWith(
-				fetch(event.request).catch(() =>
-					caches.match(`./${filePath}`).then((res) => {
-						if (res) return res;
-						return caches.match('./offline.png');
-					})
-				)
-			);
-		case 'document':
-			return event.respondWith(
-				fetch(event.request).catch(() => caches.match(`./offline.html`))
-			);
-		case 'script':
-			return event.respondWith(
-				fetch(event.request).catch(() => caches.match(`./${filePath}`))
-			);
-		default:
-			if (event.request.url.includes('openweathermap')) {
-				return event.respondWith(
-					fetch(event.request).catch(
-						() => new Response(JSON.stringify(offlineObject))
-					)
-				);
-			}
-			return event.respondWith(fetch(event.request));
-	}
-});
+// self.addEventListener('fetch', (event) => {
+// 	const { destination } = event.request;
+// 	const filePath = event.request.url
+// 		.split('//')[1]
+// 		.split('/')
+// 		.slice(1)
+// 		.join('/');
+// 	switch (destination) {
+// 		case 'image':
+// 			return event.respondWith(
+// 				fetch(event.request).catch(() =>
+// 					caches.match(`./${filePath}`).then((res) => {
+// 						if (res) return res;
+// 						return caches.match('/offline.png');
+// 					})
+// 				)
+// 			);
+// 		case 'document':
+// 			console.log(event.request);
+// 			return event.respondWith(
+// 				fetch(event.request).catch(() => caches.match(`/fallback.html`))
+// 			);
+// 		case 'script':
+// 			return event.respondWith(
+// 				fetch(event.request).catch(() => caches.match(`/${filePath}`))
+// 			);
+// 		default:
+// 			if (event.request.url.includes('openweathermap')) {
+// 				return event.respondWith(
+// 					fetch(event.request).catch(
+// 						() => new Response(JSON.stringify(offlineObject))
+// 					)
+// 				);
+// 			}
+// 			return event.respondWith(fetch(event.request));
+// 	}
+// });
