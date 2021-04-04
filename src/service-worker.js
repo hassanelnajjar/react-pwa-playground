@@ -22,6 +22,7 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 precacheAndRoute([
 	...[
+		'/',
 		'/offline.html',
 		'/offline.png',
 		'/logo192.png',
